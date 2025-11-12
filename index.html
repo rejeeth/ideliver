@@ -412,6 +412,7 @@
             display: flex;
             align-items: center;
             margin-bottom: 12px;
+            gap: 8px;
         }
 
         .shop-number {
@@ -425,8 +426,66 @@
             justify-content: center;
             font-size: 14px;
             font-weight: bold;
-            margin-right: 12px;
             box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+        }
+
+        .shop-title {
+            flex: 1;
+            font-weight: 600;
+        }
+
+        .reorder-buttons {
+            display: flex;
+            gap: 4px;
+        }
+
+        .reorder-btn {
+            width: 32px;
+            height: 32px;
+            border: 2px solid var(--border-color);
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+
+        .reorder-btn:active {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+            transform: scale(0.95);
+        }
+
+        .reorder-btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        .insert-stop-container {
+            text-align: center;
+            margin: 8px 0;
+        }
+
+        .insert-stop-btn {
+            background: var(--bg-gray);
+            border: 2px dashed var(--border-color);
+            color: var(--text-light);
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .insert-stop-btn:active {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
         }
 
         .shop-item input {
@@ -800,6 +859,99 @@
             font-weight: 600;
         }
 
+        /* Share Modal */
+        .share-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.8);
+            z-index: 2001;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .share-modal.active {
+            display: flex;
+        }
+
+        .share-modal-content {
+            background: white;
+            padding: 24px;
+            border-radius: 20px;
+            max-width: 400px;
+            width: 100%;
+        }
+
+        .share-modal-header {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 16px;
+            color: var(--text-dark);
+        }
+
+        .share-option {
+            background: white;
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .share-option:active {
+            background: var(--bg-gray);
+            border-color: var(--primary-color);
+        }
+
+        .share-option-title {
+            font-weight: 700;
+            font-size: 16px;
+            color: var(--text-dark);
+            margin-bottom: 6px;
+        }
+
+        .share-option-desc {
+            font-size: 13px;
+            color: var(--text-light);
+            line-height: 1.4;
+        }
+
+        .share-modal-close {
+            margin-top: 12px;
+            padding: 12px;
+            background: var(--bg-gray);
+            color: var(--text-dark);
+            border: none;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+        }
+
+        /* Floating back button */
+        .floating-back-btn {
+            position: fixed;
+            bottom: 80px;
+            left: 20px;
+            width: 60px;
+            height: 60px;
+            background: white;
+            color: var(--primary-color);
+            border: 2px solid var(--primary-color);
+            border-radius: 50%;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: 0 4px 20px rgba(102, 126, 234, 0.3);
+            z-index: 90;
+            display: none;
+        }
+
         /* Utilities */
         .mt-2 { margin-top: 20px; }
         .mb-2 { margin-bottom: 20px; }
@@ -1002,6 +1154,33 @@
         <button class="floating-save-btn" id="floatingSaveBtn" onclick="updateRoute()">
             ✓
         </button>
+        
+        <button class="floating-back-btn" id="floatingBackBtn" onclick="switchTab('route')">
+            ←
+        </button>
+    </div>
+
+    <!-- Share Options Modal -->
+    <div class="share-modal" id="shareModal">
+        <div class="share-modal-content">
+            <div class="share-modal-header">📤 Choose Share Format</div>
+            
+            <div class="share-option" onclick="window.tempShareRoute ? shareStoredRoute(true) : shareWithIndividualLinks()">
+                <div class="share-option-title">📍 Individual Location Links</div>
+                <div class="share-option-desc">
+                    Complete route map + separate Google Maps link for each stop location
+                </div>
+            </div>
+            
+            <div class="share-option" onclick="window.tempShareRoute ? shareStoredRoute(false) : shareWithCombinedLink()">
+                <div class="share-option-title">🗺️ Combined Route Link</div>
+                <div class="share-option-desc">
+                    List of all stops with addresses/coordinates + single Google Maps directions link
+                </div>
+            </div>
+            
+            <button class="share-modal-close" onclick="closeShareModal()">Cancel</button>
+        </div>
     </div>
 
     <!-- QR Code Modal -->
@@ -1359,15 +1538,20 @@
         }
 
         // ==================== SHOP MANAGEMENT ====================
-        function addShop() {
+        // ==================== SHOP MANAGEMENT ====================
+        function addShop(insertAfter = null) {
             shopCount++;
             const shopId = `shop${shopCount}`;
             
             const shopHtml = `
-                <div class="shop-item" id="${shopId}Container">
+                <div class="shop-item" id="${shopId}Container" data-shop-id="${shopId}">
                     <div class="shop-header">
                         <div class="shop-number">${shopCount}</div>
-                        <span style="flex: 1; font-weight: 600;">Stop #${shopCount}</span>
+                        <span class="shop-title">Stop #${shopCount}</span>
+                        <div class="reorder-buttons">
+                            <button class="reorder-btn" onclick="moveShopUp('${shopId}')" title="Move Up">↑</button>
+                            <button class="reorder-btn" onclick="moveShopDown('${shopId}')" title="Move Down">↓</button>
+                        </div>
                     </div>
                     <input type="text" placeholder="Shop/Customer Name" data-shop="${shopId}" data-field="name">
                     <input type="text" placeholder="Location" data-shop="${shopId}" data-field="location" readonly>
@@ -1379,13 +1563,93 @@
                     </div>
                     <button class="remove-shop-btn" onclick="removeShop('${shopId}')">Remove</button>
                 </div>
+                <div class="insert-stop-container">
+                    <button class="insert-stop-btn" onclick="insertShopAfter('${shopId}')">+ Insert Stop Here</button>
+                </div>
             `;
             
-            document.getElementById('shopsContainer').insertAdjacentHTML('beforeend', shopHtml);
+            const container = document.getElementById('shopsContainer');
+            
+            if (insertAfter) {
+                // Insert after specific shop
+                const afterElement = document.getElementById(`${insertAfter}Container`).nextElementSibling;
+                afterElement.insertAdjacentHTML('afterend', shopHtml);
+            } else {
+                // Add to end
+                container.insertAdjacentHTML('beforeend', shopHtml);
+            }
+            
+            updateShopNumbers();
+        }
+
+        function insertShopAfter(afterShopId) {
+            addShop(afterShopId);
+            showSuccess('Stop inserted!');
+        }
+
+        function moveShopUp(shopId) {
+            const container = document.getElementById(`${shopId}Container`);
+            const insertBtn = container.nextElementSibling;
+            const prevInsertBtn = container.previousElementSibling;
+            
+            if (prevInsertBtn && prevInsertBtn.classList.contains('insert-stop-container')) {
+                const prevContainer = prevInsertBtn.previousElementSibling;
+                if (prevContainer && prevContainer.classList.contains('shop-item')) {
+                    // Move both the shop and its insert button
+                    const parent = container.parentNode;
+                    const beforePrevContainer = prevContainer.previousElementSibling;
+                    
+                    if (beforePrevContainer && beforePrevContainer.classList.contains('insert-stop-container')) {
+                        parent.insertBefore(container, beforePrevContainer.nextSibling);
+                        parent.insertBefore(insertBtn, container.nextSibling);
+                    } else {
+                        parent.insertBefore(container, prevContainer);
+                        parent.insertBefore(insertBtn, container.nextSibling);
+                    }
+                    
+                    updateShopNumbers();
+                }
+            }
+        }
+
+        function moveShopDown(shopId) {
+            const container = document.getElementById(`${shopId}Container`);
+            const insertBtn = container.nextElementSibling;
+            const nextInsertBtn = insertBtn.nextElementSibling;
+            
+            if (nextInsertBtn && nextInsertBtn.classList.contains('shop-item')) {
+                const nextContainer = nextInsertBtn;
+                const nextContainerInsertBtn = nextContainer.nextElementSibling;
+                
+                // Move the next shop up (which moves this one down)
+                const parent = container.parentNode;
+                parent.insertBefore(nextContainer, container);
+                parent.insertBefore(nextContainerInsertBtn, nextContainer.nextSibling);
+                
+                updateShopNumbers();
+            }
+        }
+
+        function updateShopNumbers() {
+            const shopContainers = document.querySelectorAll('.shop-item');
+            shopContainers.forEach((container, index) => {
+                const number = index + 1;
+                const numberDiv = container.querySelector('.shop-number');
+                const titleSpan = container.querySelector('.shop-title');
+                
+                if (numberDiv) numberDiv.textContent = number;
+                if (titleSpan) titleSpan.textContent = `Stop #${number}`;
+            });
         }
 
         function removeShop(shopId) {
-            document.getElementById(`${shopId}Container`).remove();
+            const container = document.getElementById(`${shopId}Container`);
+            const insertBtn = container.nextElementSibling;
+            
+            container.remove();
+            if (insertBtn && insertBtn.classList.contains('insert-stop-container')) {
+                insertBtn.remove();
+            }
             
             // Remove marker if exists
             const markerIndex = markers.findIndex(m => m.id === shopId);
@@ -1393,6 +1657,8 @@
                 markers[markerIndex].marker.setMap(null);
                 markers.splice(markerIndex, 1);
             }
+            
+            updateShopNumbers();
         }
 
         // ==================== MARKERS ====================
@@ -1546,6 +1812,11 @@
 
             document.getElementById('shareDetails').textContent = shareText;
             document.getElementById('routeResult').style.display = 'block';
+            
+            // Show floating back button on mobile when viewing map
+            if (window.innerWidth <= 768) {
+                document.getElementById('floatingBackBtn').style.display = 'block';
+            }
         }
 
         // ==================== SAVE/LOAD ROUTES ====================
@@ -1841,7 +2112,68 @@
 
                 const route = doc.data();
                 
-                // Build detailed share text
+                // Store route data temporarily for sharing
+                window.tempShareRoute = route;
+                window.tempShareRouteId = routeId;
+                
+                // Show share modal
+                document.getElementById('shareModal').classList.add('active');
+            } catch (error) {
+                console.error('Share error:', error);
+                showError('Error loading route for sharing');
+            }
+        }
+
+        function shareStoredRoute(withIndividualLinks) {
+            closeShareModal();
+            
+            if (!window.tempShareRoute) {
+                showError('No route selected');
+                return;
+            }
+            
+            const route = window.tempShareRoute;
+            
+            if (withIndividualLinks) {
+                // Build share text with individual location links
+                let shareText = `📍 Route: ${route.name}\n\n`;
+                shareText += `🏁 Start: ${route.startPoint}\n`;
+                
+                const startMatch = route.startCoords.match(/[-\d.]+/g);
+                if (startMatch && startMatch.length >= 2) {
+                    const startLat = parseFloat(startMatch[0]);
+                    const startLng = parseFloat(startMatch[1]);
+                    shareText += `   📍 https://www.google.com/maps?q=${startLat},${startLng}\n\n`;
+                }
+                
+                shareText += `📦 Delivery Stops (${route.shops.length}):\n\n`;
+                
+                route.shops.forEach((shop, index) => {
+                    shareText += `${index + 1}. ${shop.name}\n`;
+                    shareText += `   📍 ${shop.location}\n`;
+                    shareText += `   🔗 https://www.google.com/maps?q=${shop.lat},${shop.lng}\n\n`;
+                });
+
+                shareText += `\n🗺️ Complete Route (All Stops):\n${route.link}`;
+
+                if (navigator.share) {
+                    navigator.share({
+                        title: `Delivery Route: ${route.name}`,
+                        text: shareText
+                    }).catch((error) => {
+                        if (error.name !== 'AbortError') {
+                            navigator.clipboard.writeText(shareText).then(() => {
+                                showSuccess('Route with individual links copied!');
+                            });
+                        }
+                    });
+                } else {
+                    navigator.clipboard.writeText(shareText).then(() => {
+                        showSuccess('Route with individual links copied!');
+                    });
+                }
+            } else {
+                // Build detailed share text (original format)
                 let shareText = `📍 Route: ${route.name}\n\n`;
                 shareText += `🏁 Start: ${route.startPoint}\n`;
                 
@@ -1861,19 +2193,26 @@
                 shareText += `🗺️ Google Maps Link:\n${route.link}`;
 
                 if (navigator.share) {
-                    await navigator.share({
+                    navigator.share({
                         title: `Delivery Route: ${route.name}`,
                         text: shareText
+                    }).catch((error) => {
+                        if (error.name !== 'AbortError') {
+                            navigator.clipboard.writeText(shareText).then(() => {
+                                showSuccess('Route details copied!');
+                            });
+                        }
                     });
                 } else {
-                    await navigator.clipboard.writeText(shareText);
-                    showSuccess('Route details copied to clipboard!');
-                }
-            } catch (error) {
-                if (error.name !== 'AbortError') {
-                    console.error('Share error:', error);
+                    navigator.clipboard.writeText(shareText).then(() => {
+                        showSuccess('Route details copied!');
+                    });
                 }
             }
+            
+            // Clean up
+            window.tempShareRoute = null;
+            window.tempShareRouteId = null;
         }
 
         function clearRoute() {
@@ -1882,6 +2221,7 @@
             document.getElementById('startCoords').textContent = '';
             document.getElementById('shopsContainer').innerHTML = '';
             document.getElementById('routeResult').style.display = 'none';
+            document.getElementById('floatingBackBtn').style.display = 'none';
             shopCount = 0;
             
             clearMarkers();
@@ -1916,6 +2256,56 @@
                 return;
             }
 
+            // Show share modal with options
+            document.getElementById('shareModal').classList.add('active');
+        }
+
+        function closeShareModal() {
+            document.getElementById('shareModal').classList.remove('active');
+        }
+
+        function shareWithIndividualLinks() {
+            closeShareModal();
+            
+            const details = currentRouteDetails;
+            
+            // Build share text with individual location links
+            let shareText = `📍 Route: ${details.routeName}\n\n`;
+            shareText += `🏁 Start: ${details.startPoint}\n`;
+            shareText += `   📍 https://www.google.com/maps?q=${details.startCoords.lat},${details.startCoords.lng}\n\n`;
+            shareText += `📦 Delivery Stops (${details.totalStops}):\n\n`;
+            
+            details.shops.forEach((shop, index) => {
+                shareText += `${index + 1}. ${shop.name}\n`;
+                shareText += `   📍 ${shop.location}\n`;
+                shareText += `   🔗 https://www.google.com/maps?q=${shop.lat},${shop.lng}\n\n`;
+            });
+
+            shareText += `\n🗺️ Complete Route (All Stops):\n${currentRouteLink}`;
+
+            if (navigator.share) {
+                navigator.share({
+                    title: details.routeName,
+                    text: shareText
+                }).catch((error) => {
+                    if (error.name !== 'AbortError') {
+                        navigator.clipboard.writeText(shareText).then(() => {
+                            showSuccess('Route with individual links copied!');
+                        });
+                    }
+                });
+            } else {
+                navigator.clipboard.writeText(shareText).then(() => {
+                    showSuccess('Route with individual links copied!');
+                }).catch(() => {
+                    showError('Could not copy to clipboard');
+                });
+            }
+        }
+
+        function shareWithCombinedLink() {
+            closeShareModal();
+            
             const shareText = document.getElementById('shareDetails').textContent;
 
             if (navigator.share) {
@@ -1968,6 +2358,7 @@
             const routePanel = document.querySelector('.left-panel');
             const mapPanel = document.querySelector('.map-panel');
             const tabs = document.querySelectorAll('.mobile-tabs button');
+            const floatingBackBtn = document.getElementById('floatingBackBtn');
             
             tabs.forEach(t => t.classList.remove('active'));
             
@@ -1975,6 +2366,8 @@
                 routePanel.classList.add('active');
                 mapPanel.classList.remove('active');
                 tabs[0].classList.add('active');
+                // Hide back button when on route tab
+                if (floatingBackBtn) floatingBackBtn.style.display = 'none';
             } else {
                 routePanel.classList.remove('active');
                 mapPanel.classList.add('active');
@@ -1984,6 +2377,10 @@
                     setTimeout(() => {
                         google.maps.event.trigger(map, 'resize');
                     }, 100);
+                }
+                // Keep back button visible if route was generated
+                if (floatingBackBtn && currentRouteLink) {
+                    floatingBackBtn.style.display = 'block';
                 }
             }
         }
