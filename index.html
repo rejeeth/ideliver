@@ -1,0 +1,1470 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Delivery Route Manager - Mobile Optimized</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: #f5f5f5;
+            overflow-x: hidden;
+        }
+
+        .app-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .app-header h1 {
+            font-size: 20px;
+            margin-bottom: 5px;
+        }
+
+        .app-header p {
+            font-size: 12px;
+            opacity: 0.9;
+        }
+
+        .mobile-tabs {
+            display: none;
+            background: white;
+            padding: 0;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 60px;
+            z-index: 99;
+        }
+
+        .mobile-tabs button {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            background: white;
+            color: #666;
+            font-size: 14px;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+        }
+
+        .mobile-tabs button.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+            font-weight: 600;
+        }
+
+        .main-container {
+            display: flex;
+            max-width: 1400px;
+            margin: 0 auto;
+            min-height: calc(100vh - 60px);
+        }
+
+        .panel {
+            background: white;
+            padding: 20px;
+        }
+
+        .left-panel {
+            flex: 0 0 400px;
+            border-right: 1px solid #e0e0e0;
+            overflow-y: auto;
+            max-height: calc(100vh - 60px);
+        }
+
+        .map-panel {
+            flex: 1;
+            position: relative;
+            min-height: 500px;
+        }
+
+        #map {
+            width: 100%;
+            height: calc(100vh - 60px);
+        }
+
+        .search-container {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            right: 10px;
+            z-index: 10;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            padding: 10px;
+        }
+
+        #searchInput {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .map-click-indicator {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #667eea;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-size: 14px;
+            display: none;
+            z-index: 10;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+
+        .section {
+            margin-bottom: 25px;
+        }
+
+        .section-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+        }
+
+        .input-group label {
+            display: block;
+            font-size: 13px;
+            color: #666;
+            margin-bottom: 6px;
+            font-weight: 500;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .location-buttons {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .location-btn {
+            padding: 8px;
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 6px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+        }
+
+        .location-btn:hover {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .location-btn.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .shop-item {
+            background: #f8f9fa;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            border-left: 3px solid #667eea;
+            position: relative;
+        }
+
+        .shop-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .shop-number {
+            background: #667eea;
+            color: white;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+
+        .shop-item input {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 6px;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+            font-size: 13px;
+        }
+
+        .remove-shop-btn {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 4px 8px;
+            font-size: 11px;
+            cursor: pointer;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 10px;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5a67d8;
+            transform: translateY(-1px);
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #218838;
+            transform: translateY(-1px);
+        }
+
+        .btn-warning {
+            background: #ffc107;
+            color: #212529;
+        }
+
+        .btn-warning:hover {
+            background: #e0a800;
+            transform: translateY(-1px);
+        }
+
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn-info {
+            background: #17a2b8;
+            color: white;
+        }
+
+        .coordinates-display {
+            font-size: 11px;
+            color: #666;
+            background: #f8f9fa;
+            padding: 4px 8px;
+            border-radius: 4px;
+            margin-top: 4px;
+            font-family: monospace;
+        }
+
+        .route-result {
+            background: #e8f5ff;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            border: 2px solid #2196F3;
+            display: none;
+        }
+
+        .route-link {
+            background: white;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+            word-break: break-all;
+            font-size: 12px;
+            font-family: monospace;
+            border: 1px solid #ddd;
+            max-height: 100px;
+            overflow-y: auto;
+        }
+
+        .action-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .saved-routes-section {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 2px solid #f0f0f0;
+        }
+
+        .route-card {
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 10px;
+            transition: all 0.3s;
+        }
+
+        .route-card:hover {
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            border-color: #667eea;
+        }
+
+        .route-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 8px;
+        }
+
+        .route-name {
+            font-weight: 600;
+            color: #333;
+            font-size: 14px;
+        }
+
+        .route-date {
+            font-size: 11px;
+            color: #999;
+        }
+
+        .route-meta {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 8px;
+        }
+
+        .route-actions {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 6px;
+        }
+
+        .route-actions button {
+            padding: 6px;
+            font-size: 11px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .qr-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.8);
+            z-index: 1000;
+            padding: 20px;
+        }
+
+        .qr-modal-content {
+            background: white;
+            max-width: 400px;
+            margin: 50px auto;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .qr-modal-content h3 {
+            margin-bottom: 15px;
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            font-size: 30px;
+            color: white;
+            cursor: pointer;
+        }
+
+        .edit-mode-indicator {
+            background: #ffc107;
+            color: #212529;
+            padding: 8px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            text-align: center;
+            font-size: 13px;
+            font-weight: 600;
+            display: none;
+        }
+
+        .floating-save-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #28a745;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            font-size: 24px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            cursor: pointer;
+            display: none;
+            z-index: 100;
+        }
+
+        @media (max-width: 768px) {
+            .mobile-tabs {
+                display: flex;
+            }
+
+            .main-container {
+                flex-direction: column;
+            }
+
+            .left-panel {
+                flex: 1;
+                border-right: none;
+                max-height: none;
+                display: none;
+            }
+
+            .left-panel.active {
+                display: block;
+            }
+
+            .map-panel {
+                display: none;
+                min-height: calc(100vh - 120px);
+            }
+
+            .map-panel.active {
+                display: block;
+            }
+
+            #map {
+                height: calc(100vh - 120px);
+            }
+
+            .location-buttons {
+                grid-template-columns: 1fr;
+            }
+
+            .action-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .route-actions {
+                grid-template-columns: 1fr;
+            }
+
+            .search-container {
+                top: 5px;
+                left: 5px;
+                right: 5px;
+            }
+
+            .app-header h1 {
+                font-size: 18px;
+            }
+
+            .floating-save-btn {
+                bottom: 70px;
+            }
+        }
+
+        @media (max-width: 400px) {
+            .app-header {
+                padding: 12px;
+            }
+
+            .panel {
+                padding: 15px;
+            }
+
+            .btn {
+                padding: 10px;
+                font-size: 13px;
+            }
+        }
+
+        .success-message {
+            background: #d4edda;
+            color: #155724;
+            padding: 10px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            display: none;
+            font-size: 13px;
+        }
+
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 10px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            display: none;
+            font-size: 13px;
+        }
+
+        .route-stats {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 6px;
+            margin-top: 10px;
+            font-size: 12px;
+            color: #666;
+        }
+
+        /* Loading spinner */
+        .loading-spinner {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 9999;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Print styles */
+        @media print {
+            .app-header, .mobile-tabs, .btn, .location-buttons {
+                display: none !important;
+            }
+            .main-container {
+                display: block !important;
+            }
+            .left-panel {
+                display: block !important;
+                border: none;
+                max-height: none;
+            }
+            .map-panel {
+                page-break-before: always;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-header">
+        <h1>📍 Delivery Route Manager</h1>
+        <p>Create, save, and share optimized delivery routes</p>
+    </div>
+
+    <div class="mobile-tabs">
+        <button class="active" onclick="switchTab('route')">📝 Route</button>
+        <button onclick="switchTab('map')">🗺️ Map</button>
+    </div>
+
+    <div class="main-container">
+        <div class="panel left-panel active">
+            <div class="success-message" id="successMessage"></div>
+            <div class="error-message" id="errorMessage"></div>
+            <div class="edit-mode-indicator" id="editModeIndicator">
+                📝 Editing Route: <span id="editRouteName"></span>
+                <button onclick="cancelEdit()" style="margin-left: 10px; padding: 2px 8px; background: white; border: 1px solid #ccc; border-radius: 4px; font-size: 11px;">Cancel</button>
+            </div>
+
+            <div class="section">
+                <h2 class="section-title">📍 Route Setup</h2>
+                
+                <div class="input-group">
+                    <label>Route Name (for saving)</label>
+                    <input type="text" id="routeName" placeholder="e.g., Monday North Zone">
+                </div>
+
+                <div class="input-group">
+                    <label>Starting Point (Warehouse/Store)</label>
+                    <input type="text" id="startPoint" placeholder="Click map or enter address">
+                    <div class="location-buttons">
+                        <button class="location-btn" onclick="selectOnMap('start')">📍 Map</button>
+                        <button class="location-btn" onclick="getCurrentLocation('start')">📍 GPS</button>
+                        <button class="location-btn" onclick="searchAddress('start')">🔍 Search</button>
+                    </div>
+                    <div class="coordinates-display" id="startCoords"></div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2 class="section-title">🚚 Delivery Stops</h2>
+                <div id="shopsContainer"></div>
+                <button class="btn btn-primary" onclick="addShop()">+ Add Stop</button>
+            </div>
+
+            <div class="section">
+                <button class="btn btn-success" onclick="generateRoute()">🗺️ Generate Route</button>
+                <button class="btn btn-warning" onclick="saveRoute()">💾 Save Route</button>
+                
+                <div class="route-result" id="routeResult">
+                    <strong>📱 Route Generated!</strong>
+                    <div class="route-link" id="routeLink"></div>
+                    <div class="action-grid">
+                        <button class="btn btn-info" onclick="copyLink()">📋 Copy</button>
+                        <button class="btn btn-primary" onclick="shareRoute()">📤 Share</button>
+                        <button class="btn btn-success" onclick="openInMaps()">🗺️ Open</button>
+                        <button class="btn btn-warning" onclick="showQR()">📱 QR</button>
+                    </div>
+                    <div class="route-stats" id="routeStats"></div>
+                </div>
+            </div>
+
+            <div class="saved-routes-section">
+                <h2 class="section-title">📚 Saved Routes</h2>
+                <div id="savedRoutesList"></div>
+            </div>
+        </div>
+
+        <div class="panel map-panel">
+            <div class="search-container">
+                <input type="text" id="searchInput" placeholder="Search for a place...">
+            </div>
+            <div class="map-click-indicator" id="mapClickIndicator">
+                Click on map to select location
+            </div>
+            <div id="map"></div>
+        </div>
+    </div>
+
+    <button class="floating-save-btn" id="floatingSaveBtn" onclick="updateRoute()">✓</button>
+
+    <div class="qr-modal" id="qrModal">
+        <span class="close-modal" onclick="closeQR()">&times;</span>
+        <div class="qr-modal-content">
+            <h3>Scan QR Code</h3>
+            <div id="qrCode"></div>
+            <p style="margin-top: 15px; font-size: 13px; color: #666;">Driver can scan this with phone camera</p>
+        </div>
+    </div>
+
+    <div class="loading-spinner" id="loadingSpinner">
+        <div class="spinner"></div>
+    </div>
+
+    <!-- QR Code Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+    <script>
+        // Global variables
+        let map;
+        let markers = [];
+        let directionsService;
+        let directionsRenderer;
+        let searchBox;
+        let geocoder;
+        let shopCount = 0;
+        let currentRouteLink = '';
+        let selectedField = '';
+        let currentEditingRoute = null;
+        let placesService;
+        let mapClickListener;
+        let autocomplete;
+
+        // Initialize when page loads
+        function initMap() {
+            // Initialize map centered on a default location
+            const defaultCenter = { lat: 28.6139, lng: 77.2090 };
+            
+            map = new google.maps.Map(document.getElementById('map'), {
+                zoom: 12,
+                center: defaultCenter,
+                mapTypeControl: true,
+                mapTypeControlOptions: {
+                    position: google.maps.ControlPosition.TOP_RIGHT
+                },
+                streetViewControl: false,
+                fullscreenControl: false,
+                zoomControl: true,
+                zoomControlOptions: {
+                    position: google.maps.ControlPosition.RIGHT_CENTER
+                }
+            });
+
+            // Initialize services
+            directionsService = new google.maps.DirectionsService();
+            directionsRenderer = new google.maps.DirectionsRenderer({
+                map: map,
+                suppressMarkers: false,
+                polylineOptions: {
+                    strokeColor: '#667eea',
+                    strokeWeight: 4,
+                    strokeOpacity: 0.8
+                }
+            });
+            
+            geocoder = new google.maps.Geocoder();
+            placesService = new google.maps.places.PlacesService(map);
+
+            // Set up search box
+            const searchInput = document.getElementById('searchInput');
+            autocomplete = new google.maps.places.Autocomplete(searchInput);
+            autocomplete.bindTo('bounds', map);
+
+            // Listen for place selection
+            autocomplete.addListener('place_changed', function() {
+                const place = autocomplete.getPlace();
+                
+                if (!place.geometry || !place.geometry.location) {
+                    showError("No details available for: '" + place.name + "'");
+                    return;
+                }
+
+                // Move map to selected place
+                if (place.geometry.viewport) {
+                    map.fitBounds(place.geometry.viewport);
+                } else {
+                    map.setCenter(place.geometry.location);
+                    map.setZoom(17);
+                }
+
+                // If we're selecting for a field, use this location
+                if (selectedField) {
+                    const location = place.geometry.location;
+                    const address = place.formatted_address || place.name;
+                    setLocationForField(selectedField, address, location.lat(), location.lng());
+                    selectedField = '';
+                    hideMapClickIndicator();
+                }
+            });
+
+            // Map click handler
+            map.addListener('click', function(event) {
+                handleMapClick(event);
+            });
+
+            // Try to get user's location
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(function(position) {
+                    const pos = {
+                        lat: position.coords.latitude,
+                        lng: position.coords.longitude
+                    };
+                    map.setCenter(pos);
+                }, function() {
+                    // Location access denied or error
+                    console.log('Geolocation denied or unavailable');
+                });
+            }
+
+            // Load saved routes on startup
+            loadSavedRoutes();
+            
+            // Add first shop
+            addShop();
+        }
+
+        function handleMapClick(event) {
+            if (!selectedField) return;
+
+            const lat = event.latLng.lat();
+            const lng = event.latLng.lng();
+
+            // Reverse geocode to get address
+            geocoder.geocode({ location: event.latLng }, function(results, status) {
+                if (status === 'OK' && results[0]) {
+                    setLocationForField(selectedField, results[0].formatted_address, lat, lng);
+                } else {
+                    setLocationForField(selectedField, `${lat.toFixed(6)}, ${lng.toFixed(6)}`, lat, lng);
+                }
+                selectedField = '';
+                hideMapClickIndicator();
+            });
+        }
+
+        function showMapClickIndicator() {
+            document.getElementById('mapClickIndicator').style.display = 'block';
+        }
+
+        function hideMapClickIndicator() {
+            document.getElementById('mapClickIndicator').style.display = 'none';
+        }
+
+        function selectOnMap(field) {
+            selectedField = field;
+            showMapClickIndicator();
+            
+            // Switch to map tab on mobile
+            if (window.innerWidth <= 768) {
+                switchTab('map');
+            }
+            
+            showSuccess('Click on the map to select location');
+        }
+
+        function getCurrentLocation(field) {
+            if (!navigator.geolocation) {
+                showError('Geolocation is not supported by your browser');
+                return;
+            }
+
+            showLoading();
+            navigator.geolocation.getCurrentPosition(function(position) {
+                const lat = position.coords.latitude;
+                const lng = position.coords.longitude;
+
+                geocoder.geocode({ location: { lat: lat, lng: lng } }, function(results, status) {
+                    hideLoading();
+                    if (status === 'OK' && results[0]) {
+                        setLocationForField(field, results[0].formatted_address, lat, lng);
+                        map.setCenter({ lat: lat, lng: lng });
+                        map.setZoom(15);
+                    } else {
+                        setLocationForField(field, `${lat.toFixed(6)}, ${lng.toFixed(6)}`, lat, lng);
+                    }
+                });
+            }, function(error) {
+                hideLoading();
+                showError('Unable to get your location: ' + error.message);
+            });
+        }
+
+        function searchAddress(field) {
+            selectedField = field;
+            document.getElementById('searchInput').focus();
+            
+            // Switch to map tab on mobile
+            if (window.innerWidth <= 768) {
+                switchTab('map');
+            }
+            
+            showSuccess('Type in the search box to find location');
+        }
+
+        function setLocationForField(field, address, lat, lng) {
+            if (field === 'start') {
+                document.getElementById('startPoint').value = address;
+                document.getElementById('startCoords').textContent = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+                
+                // Update or create marker
+                if (markers[0]) {
+                    markers[0].setPosition({ lat: lat, lng: lng });
+                } else {
+                    markers[0] = new google.maps.Marker({
+                        position: { lat: lat, lng: lng },
+                        map: map,
+                        title: 'Starting Point',
+                        icon: 'http://maps.google.com/mapfiles/ms/icons/green-dot.png'
+                    });
+                }
+            } else {
+                const shopId = field.replace('shop-', '');
+                document.getElementById(`shopAddress-${shopId}`).value = address;
+                document.getElementById(`shopCoords-${shopId}`).textContent = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+                
+                // Update or create marker
+                const markerIndex = parseInt(shopId);
+                if (markers[markerIndex]) {
+                    markers[markerIndex].setPosition({ lat: lat, lng: lng });
+                } else {
+                    markers[markerIndex] = new google.maps.Marker({
+                        position: { lat: lat, lng: lng },
+                        map: map,
+                        title: `Stop ${shopId}`,
+                        label: shopId.toString()
+                    });
+                }
+            }
+
+            // Center map on new location
+            map.setCenter({ lat: lat, lng: lng });
+            if (map.getZoom() < 15) {
+                map.setZoom(15);
+            }
+
+            showSuccess('Location selected successfully');
+        }
+
+        function addShop() {
+            shopCount++;
+            const container = document.getElementById('shopsContainer');
+            
+            const shopDiv = document.createElement('div');
+            shopDiv.className = 'shop-item';
+            shopDiv.id = `shop-${shopCount}`;
+            
+            shopDiv.innerHTML = `
+                <button class="remove-shop-btn" onclick="removeShop(${shopCount})">Remove</button>
+                <div class="shop-header">
+                    <span class="shop-number">${shopCount}</span>
+                    <strong>Stop ${shopCount}</strong>
+                </div>
+                <input type="text" id="shopName-${shopCount}" placeholder="Shop/Customer name (optional)">
+                <input type="text" id="shopAddress-${shopCount}" placeholder="Address or location">
+                <div class="location-buttons">
+                    <button class="location-btn" onclick="selectOnMap('shop-${shopCount}')">📍 Map</button>
+                    <button class="location-btn" onclick="getCurrentLocation('shop-${shopCount}')">📍 GPS</button>
+                    <button class="location-btn" onclick="searchAddress('shop-${shopCount}')">🔍 Search</button>
+                </div>
+                <div class="coordinates-display" id="shopCoords-${shopCount}"></div>
+            `;
+            
+            container.appendChild(shopDiv);
+        }
+
+        function removeShop(id) {
+            const shopDiv = document.getElementById(`shop-${id}`);
+            if (shopDiv) {
+                shopDiv.remove();
+                // Remove marker
+                if (markers[id]) {
+                    markers[id].setMap(null);
+                    markers[id] = null;
+                }
+            }
+        }
+
+        function generateRoute() {
+            const startPoint = document.getElementById('startPoint').value;
+            if (!startPoint) {
+                showError('Please enter a starting point');
+                return;
+            }
+
+            const shops = [];
+            document.querySelectorAll('.shop-item').forEach(item => {
+                const id = item.id.replace('shop-', '');
+                const name = document.getElementById(`shopName-${id}`).value;
+                const address = document.getElementById(`shopAddress-${id}`).value;
+                
+                if (address) {
+                    shops.push({
+                        id: id,
+                        name: name || `Stop ${id}`,
+                        address: address
+                    });
+                }
+            });
+
+            if (shops.length === 0) {
+                showError('Please add at least one delivery stop');
+                return;
+            }
+
+            // Create Google Maps URL
+            let mapsUrl = 'https://www.google.com/maps/dir/';
+            mapsUrl += encodeURIComponent(startPoint) + '/';
+            shops.forEach(shop => {
+                mapsUrl += encodeURIComponent(shop.address) + '/';
+            });
+            mapsUrl += '?travelmode=driving';
+
+            currentRouteLink = mapsUrl;
+            
+            // Display result
+            document.getElementById('routeLink').textContent = mapsUrl;
+            document.getElementById('routeResult').style.display = 'block';
+            
+            // Update stats
+            const stats = `📊 ${shops.length} stops • Starting from: ${startPoint.substring(0, 30)}...`;
+            document.getElementById('routeStats').textContent = stats;
+
+            // Show route on map
+            showRouteOnMap(startPoint, shops);
+
+            showSuccess('Route generated successfully!');
+        }
+
+        function showRouteOnMap(start, shops) {
+            if (!directionsService || !directionsRenderer) return;
+
+            const waypoints = shops.slice(0, -1).map(shop => ({
+                location: shop.address,
+                stopover: true
+            }));
+
+            const destination = shops[shops.length - 1].address;
+
+            const request = {
+                origin: start,
+                destination: destination,
+                waypoints: waypoints,
+                optimizeWaypoints: true,
+                travelMode: 'DRIVING'
+            };
+
+            directionsService.route(request, function(result, status) {
+                if (status === 'OK') {
+                    directionsRenderer.setDirections(result);
+                    
+                    // Calculate total distance and time
+                    let totalDistance = 0;
+                    let totalDuration = 0;
+                    
+                    result.routes[0].legs.forEach(leg => {
+                        totalDistance += leg.distance.value;
+                        totalDuration += leg.duration.value;
+                    });
+                    
+                    const distanceKm = (totalDistance / 1000).toFixed(1);
+                    const durationMins = Math.round(totalDuration / 60);
+                    
+                    const stats = document.getElementById('routeStats');
+                    stats.innerHTML += `<br>📏 Total: ${distanceKm} km • ⏱️ Est. time: ${durationMins} mins`;
+                }
+            });
+        }
+
+        function saveRoute() {
+            const routeName = document.getElementById('routeName').value;
+            if (!routeName) {
+                showError('Please enter a route name');
+                return;
+            }
+
+            if (!currentRouteLink) {
+                showError('Please generate a route first');
+                return;
+            }
+
+            const startPoint = document.getElementById('startPoint').value;
+            const shops = [];
+            
+            document.querySelectorAll('.shop-item').forEach(item => {
+                const id = item.id.replace('shop-', '');
+                const name = document.getElementById(`shopName-${id}`).value;
+                const address = document.getElementById(`shopAddress-${id}`).value;
+                const coords = document.getElementById(`shopCoords-${id}`).textContent;
+                
+                if (address) {
+                    shops.push({
+                        id: id,
+                        name: name || `Stop ${id}`,
+                        address: address,
+                        coords: coords
+                    });
+                }
+            });
+
+            const route = {
+                id: currentEditingRoute ? currentEditingRoute.id : Date.now(),
+                name: routeName,
+                date: new Date().toISOString(),
+                lastModified: new Date().toISOString(),
+                startPoint: startPoint,
+                startCoords: document.getElementById('startCoords').textContent,
+                shops: shops,
+                link: currentRouteLink
+            };
+
+            let savedRoutes = JSON.parse(localStorage.getItem('deliveryRoutes') || '[]');
+            
+            if (currentEditingRoute) {
+                // Update existing route
+                const index = savedRoutes.findIndex(r => r.id === currentEditingRoute.id);
+                if (index !== -1) {
+                    savedRoutes[index] = route;
+                    showSuccess('Route updated successfully!');
+                }
+                currentEditingRoute = null;
+                document.getElementById('editModeIndicator').style.display = 'none';
+                document.getElementById('floatingSaveBtn').style.display = 'none';
+            } else {
+                // Check for duplicate names
+                if (savedRoutes.some(r => r.name === routeName)) {
+                    if (!confirm('A route with this name already exists. Do you want to replace it?')) {
+                        return;
+                    }
+                    savedRoutes = savedRoutes.filter(r => r.name !== routeName);
+                }
+                savedRoutes.push(route);
+                showSuccess('Route saved successfully!');
+            }
+
+            localStorage.setItem('deliveryRoutes', JSON.stringify(savedRoutes));
+            loadSavedRoutes();
+        }
+
+        function updateRoute() {
+            if (!currentEditingRoute) return;
+            saveRoute();
+        }
+
+        function loadSavedRoutes() {
+            const savedRoutes = JSON.parse(localStorage.getItem('deliveryRoutes') || '[]');
+            const container = document.getElementById('savedRoutesList');
+            
+            if (savedRoutes.length === 0) {
+                container.innerHTML = '<p style="color: #999; text-align: center; padding: 20px;">No saved routes yet</p>';
+                return;
+            }
+
+            // Sort by last modified date
+            savedRoutes.sort((a, b) => new Date(b.lastModified || b.date) - new Date(a.lastModified || a.date));
+
+            container.innerHTML = '';
+            savedRoutes.forEach(route => {
+                const routeCard = document.createElement('div');
+                routeCard.className = 'route-card';
+                
+                const date = new Date(route.lastModified || route.date);
+                const dateStr = date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                
+                routeCard.innerHTML = `
+                    <div class="route-card-header">
+                        <div>
+                            <div class="route-name">${route.name}</div>
+                            <div class="route-date">Modified: ${dateStr}</div>
+                        </div>
+                    </div>
+                    <div class="route-meta">
+                        📍 ${route.shops.length} stops • From: ${route.startPoint.substring(0, 30)}...
+                    </div>
+                    <div class="route-actions">
+                        <button class="btn-success" onclick="loadRoute(${route.id})">Load</button>
+                        <button class="btn-primary" onclick="editRoute(${route.id})">Edit</button>
+                        <button class="btn-info" onclick="duplicateRoute(${route.id})">Copy</button>
+                        <button class="btn-warning" onclick="shareRouteById(${route.id})">Share</button>
+                        <button class="btn-danger" onclick="deleteRoute(${route.id})">Delete</button>
+                    </div>
+                `;
+                
+                container.appendChild(routeCard);
+            });
+        }
+
+        function loadRoute(id) {
+            const savedRoutes = JSON.parse(localStorage.getItem('deliveryRoutes') || '[]');
+            const route = savedRoutes.find(r => r.id === id);
+            if (!route) return;
+
+            clearRoute();
+
+            // Load route data
+            document.getElementById('routeName').value = route.name;
+            document.getElementById('startPoint').value = route.startPoint;
+            if (route.startCoords) {
+                document.getElementById('startCoords').textContent = route.startCoords;
+            }
+
+            // Load shops
+            route.shops.forEach(shop => {
+                addShop();
+                document.getElementById(`shopName-${shopCount}`).value = shop.name;
+                document.getElementById(`shopAddress-${shopCount}`).value = shop.address;
+                if (shop.coords) {
+                    document.getElementById(`shopCoords-${shopCount}`).textContent = shop.coords;
+                }
+            });
+
+            showSuccess('Route loaded! Click "Generate Route" to create navigation link.');
+            
+            // Switch to route tab on mobile
+            if (window.innerWidth <= 768) {
+                switchTab('route');
+            }
+        }
+
+        function editRoute(id) {
+            const savedRoutes = JSON.parse(localStorage.getItem('deliveryRoutes') || '[]');
+            const route = savedRoutes.find(r => r.id === id);
+            if (!route) return;
+
+            loadRoute(id);
+            currentEditingRoute = route;
+            
+            document.getElementById('editModeIndicator').style.display = 'block';
+            document.getElementById('editRouteName').textContent = route.name;
+            document.getElementById('floatingSaveBtn').style.display = 'block';
+            
+            showSuccess(`Editing route: ${route.name}`);
+        }
+
+        function cancelEdit() {
+            currentEditingRoute = null;
+            document.getElementById('editModeIndicator').style.display = 'none';
+            document.getElementById('floatingSaveBtn').style.display = 'none';
+            clearRoute();
+        }
+
+        function duplicateRoute(id) {
+            const savedRoutes = JSON.parse(localStorage.getItem('deliveryRoutes') || '[]');
+            const route = savedRoutes.find(r => r.id === id);
+            if (!route) return;
+
+            const newName = prompt('Enter name for the duplicated route:', route.name + ' (Copy)');
+            if (!newName) return;
+
+            const newRoute = {
+                ...route,
+                id: Date.now(),
+                name: newName,
+                date: new Date().toISOString(),
+                lastModified: new Date().toISOString()
+            };
+
+            savedRoutes.push(newRoute);
+            localStorage.setItem('deliveryRoutes', JSON.stringify(savedRoutes));
+            loadSavedRoutes();
+            showSuccess('Route duplicated successfully!');
+        }
+
+        function shareRouteById(id) {
+            const savedRoutes = JSON.parse(localStorage.getItem('deliveryRoutes') || '[]');
+            const route = savedRoutes.find(r => r.id === id);
+            if (!route) return;
+
+            currentRouteLink = route.link;
+            
+            if (navigator.share) {
+                navigator.share({
+                    title: `Delivery Route: ${route.name}`,
+                    text: `Route with ${route.shops.length} stops`,
+                    url: route.link
+                }).catch(err => console.log('Share cancelled'));
+            } else {
+                navigator.clipboard.writeText(route.link).then(() => {
+                    showSuccess('Route link copied to clipboard!');
+                });
+            }
+        }
+
+        function deleteRoute(id) {
+            if (!confirm('Are you sure you want to delete this route?')) return;
+            
+            let savedRoutes = JSON.parse(localStorage.getItem('deliveryRoutes') || '[]');
+            savedRoutes = savedRoutes.filter(r => r.id !== id);
+            localStorage.setItem('deliveryRoutes', JSON.stringify(savedRoutes));
+            
+            loadSavedRoutes();
+            showSuccess('Route deleted');
+        }
+
+        function clearRoute() {
+            document.getElementById('routeName').value = '';
+            document.getElementById('startPoint').value = '';
+            document.getElementById('startCoords').textContent = '';
+            document.getElementById('shopsContainer').innerHTML = '';
+            document.getElementById('routeResult').style.display = 'none';
+            shopCount = 0;
+            
+            // Clear markers
+            markers.forEach(marker => {
+                if (marker) marker.setMap(null);
+            });
+            markers = [];
+            
+            // Clear directions
+            if (directionsRenderer) {
+                directionsRenderer.setDirections({routes: []});
+            }
+        }
+
+        function copyLink() {
+            navigator.clipboard.writeText(currentRouteLink).then(() => {
+                showSuccess('Link copied to clipboard!');
+            }).catch(err => {
+                // Fallback
+                const textArea = document.createElement('textarea');
+                textArea.value = currentRouteLink;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                showSuccess('Link copied!');
+            });
+        }
+
+        function shareRoute() {
+            if (navigator.share) {
+                const routeName = document.getElementById('routeName').value || 'Delivery Route';
+                navigator.share({
+                    title: routeName,
+                    text: `Delivery route for ${new Date().toLocaleDateString()}`,
+                    url: currentRouteLink
+                }).catch(err => console.log('Share cancelled'));
+            } else {
+                copyLink();
+            }
+        }
+
+        function openInMaps() {
+            window.open(currentRouteLink, '_blank');
+        }
+
+        function showQR() {
+            const modal = document.getElementById('qrModal');
+            const qrContainer = document.getElementById('qrCode');
+            
+            qrContainer.innerHTML = '';
+            new QRCode(qrContainer, {
+                text: currentRouteLink,
+                width: 256,
+                height: 256
+            });
+            
+            modal.style.display = 'block';
+        }
+
+        function closeQR() {
+            document.getElementById('qrModal').style.display = 'none';
+        }
+
+        function switchTab(tab) {
+            const routePanel = document.querySelector('.left-panel');
+            const mapPanel = document.querySelector('.map-panel');
+            const tabs = document.querySelectorAll('.mobile-tabs button');
+            
+            tabs.forEach(t => t.classList.remove('active'));
+            
+            if (tab === 'route') {
+                routePanel.classList.add('active');
+                mapPanel.classList.remove('active');
+                tabs[0].classList.add('active');
+            } else {
+                routePanel.classList.remove('active');
+                mapPanel.classList.add('active');
+                tabs[1].classList.add('active');
+                
+                // Trigger map resize when switching to map tab
+                if (map) {
+                    google.maps.event.trigger(map, 'resize');
+                }
+            }
+        }
+
+        function showSuccess(message) {
+            const elem = document.getElementById('successMessage');
+            elem.textContent = message;
+            elem.style.display = 'block';
+            setTimeout(() => {
+                elem.style.display = 'none';
+            }, 3000);
+        }
+
+        function showError(message) {
+            const elem = document.getElementById('errorMessage');
+            elem.textContent = message;
+            elem.style.display = 'block';
+            setTimeout(() => {
+                elem.style.display = 'none';
+            }, 5000);
+        }
+
+        function showLoading() {
+            document.getElementById('loadingSpinner').style.display = 'block';
+        }
+
+        function hideLoading() {
+            document.getElementById('loadingSpinner').style.display = 'none';
+        }
+
+        // Window resize handler
+        window.addEventListener('resize', function() {
+            if (map) {
+                google.maps.event.trigger(map, 'resize');
+            }
+        });
+
+        // Handle back button on mobile
+        window.addEventListener('popstate', function(e) {
+            if (window.innerWidth <= 768) {
+                switchTab('route');
+            }
+        });
+
+        // Export/Import functions for backup
+        function exportRoutes() {
+            const routes = localStorage.getItem('deliveryRoutes') || '[]';
+            const blob = new Blob([routes], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `delivery-routes-${new Date().toISOString().split('T')[0]}.json`;
+            a.click();
+        }
+
+        function importRoutes() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.json';
+            input.onchange = function(e) {
+                const file = e.target.files[0];
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    try {
+                        const routes = JSON.parse(event.target.result);
+                        localStorage.setItem('deliveryRoutes', JSON.stringify(routes));
+                        loadSavedRoutes();
+                        showSuccess('Routes imported successfully!');
+                    } catch (error) {
+                        showError('Invalid file format');
+                    }
+                };
+                reader.readAsText(file);
+            };
+            input.click();
+        }
+    </script>
+
+    <!-- Google Maps JavaScript API -->
+    <!-- Replace YOUR_API_KEY with your actual API key -->
+    <script async defer
+        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCc4T3NXn5v0Zz6GX8snVJt0GWGEI70lFA&libraries=places&callback=initMap">
+    </script>
+</body>
+</html>
