@@ -870,12 +870,10 @@
                     <label>Password</label>
                     <input type="password" id="signupPassword" required placeholder="Create a password" minlength="6">
                 </div>
-                <div class="form-group">
-                    <label>User Role</label>
-                    <select id="signupRole" required>
-                        <option value="user">User</option>
-                        <option value="admin">Admin</option>
-                    </select>
+                <div style="padding: 12px; background: #f0f4ff; border-radius: 8px; margin-bottom: 20px;">
+                    <small style="color: #667eea; font-size: 13px;">
+                        ℹ️ New accounts are created as regular users. Contact your admin for role changes.
+                    </small>
                 </div>
                 <button type="submit" class="btn-primary">Create Account</button>
             </form>
@@ -1117,7 +1115,7 @@
             const name = document.getElementById('signupName').value;
             const email = document.getElementById('signupEmail').value;
             const password = document.getElementById('signupPassword').value;
-            const role = document.getElementById('signupRole').value;
+            const role = 'user'; // All new signups are users by default
 
             try {
                 showLoading();
@@ -1331,14 +1329,14 @@
                 clearMarkers();
                 addMarker({ lat, lng }, address, 'start');
             } else if (currentTargetField) {
-                // For shop locations
-                const input = document.querySelector(`input[data-shop="${currentTargetField}"]`);
+                // For shop locations - use more specific selector
+                const locationInput = document.querySelector(`input[data-shop="${currentTargetField}"][data-field="location"]`);
                 const coordsDiv = document.querySelector(`div[data-shop-coords="${currentTargetField}"]`);
                 
-                if (input && coordsDiv) {
-                    input.value = address;
-                    input.dataset.lat = lat;
-                    input.dataset.lng = lng;
+                if (locationInput && coordsDiv) {
+                    locationInput.value = address;
+                    locationInput.dataset.lat = lat;
+                    locationInput.dataset.lng = lng;
                     coordsDiv.textContent = `📍 ${lat.toFixed(6)}, ${lng.toFixed(6)}`;
                     
                     addMarker({ lat, lng }, address, currentTargetField);
