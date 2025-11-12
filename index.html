@@ -1628,12 +1628,16 @@
                 const container = document.getElementById('savedRoutesContainer');
                 
                 // Query routes - admins see all, users see only their routes
-                let query = db.collection('routes');
-                if (currentUser.role !== 'admin') {
-                    query = query.where('userId', '==', currentUser.uid);
+                let snapshot;
+                if (currentUser.role === 'admin') {
+                    // Admin: Get all routes
+                    snapshot = await db.collection('routes').get();
+                } else {
+                    // User: Get only their routes
+                    snapshot = await db.collection('routes')
+                        .where('userId', '==', currentUser.uid)
+                        .get();
                 }
-                
-                const snapshot = await query.orderBy('createdAt', 'desc').get();
                 
                 if (snapshot.empty) {
                     container.innerHTML = `
@@ -1645,9 +1649,25 @@
                     return;
                 }
 
-                let html = '';
+                // Convert to array and sort by date in memory
+                let routes = [];
                 snapshot.forEach((doc) => {
-                    const route = doc.data();
+                    routes.push({
+                        id: doc.id,
+                        data: doc.data()
+                    });
+                });
+
+                // Sort by createdAt descending (newest first)
+                routes.sort((a, b) => {
+                    const dateA = a.data.createdAt ? a.data.createdAt.toDate() : new Date(0);
+                    const dateB = b.data.createdAt ? b.data.createdAt.toDate() : new Date(0);
+                    return dateB - dateA;
+                });
+
+                let html = '';
+                routes.forEach((routeDoc) => {
+                    const route = routeDoc.data;
                     const date = route.createdAt ? route.createdAt.toDate().toLocaleDateString() : 'N/A';
                     
                     html += `
@@ -1671,19 +1691,19 @@
                                 </div>
                             </div>
                             <div class="route-actions">
-                                <button class="route-action-btn" onclick="loadRoute('${doc.id}')">
+                                <button class="route-action-btn" onclick="loadRoute('${routeDoc.id}')">
                                     <span>📂</span>
                                     <span>Load</span>
                                 </button>
-                                <button class="route-action-btn" onclick="editRoute('${doc.id}')">
+                                <button class="route-action-btn" onclick="editRoute('${routeDoc.id}')">
                                     <span>✏️</span>
                                     <span>Edit</span>
                                 </button>
-                                <button class="route-action-btn" onclick="shareRouteById('${doc.id}')">
+                                <button class="route-action-btn" onclick="shareRouteById('${routeDoc.id}')">
                                     <span>📤</span>
                                     <span>Share</span>
                                 </button>
-                                <button class="route-action-btn delete" onclick="deleteRoute('${doc.id}')">
+                                <button class="route-action-btn delete" onclick="deleteRoute('${routeDoc.id}')">
                                     <span>🗑️</span>
                                     <span>Delete</span>
                                 </button>
